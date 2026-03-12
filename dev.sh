@@ -55,9 +55,9 @@ echo -e "  - Cliente 2: http://localhost:5000/login?tenant=cliente2"
 
 # Roda o servidor dev
 if command -v pnpm &> /dev/null; then
-    pnpm dev
+    pnpm dev:5000
 elif command -v yarn &> /dev/null; then
-    yarn dev
+    yarn dev:5000
 else
-    npm run dev
+    npm run dev:5000
 fi
