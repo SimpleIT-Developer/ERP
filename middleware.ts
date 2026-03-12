@@ -7,11 +7,38 @@ function extractTenant(req: NextRequest): string | null {
   if (qpTenant) return qpTenant.toLowerCase();
 
   const host = req.headers.get("host") || "";
-  // e.g., cliente1.dominio.com.br -> cliente1
-  const parts = host.split(":")[0].split(".");
-  if (parts.length > 2) {
-    return parts[0].toLowerCase();
+  const hostname = host.split(":")[0].toLowerCase();
+  const baseDomain =
+    (process.env.TENANT_BASE_DOMAIN ||
+      process.env.NEXT_PUBLIC_TENANT_BASE_DOMAIN ||
+      "assina.simpleit.app.br").toLowerCase();
+
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname === "::1"
+  ) {
+    return null;
   }
+
+  if (hostname === baseDomain || hostname === `www.${baseDomain}`) {
+    return null;
+  }
+
+  if (hostname.endsWith(`.${baseDomain}`)) {
+    const prefix = hostname.slice(0, -(baseDomain.length + 1));
+    const tenant = prefix.split(".")[0];
+    return tenant && tenant !== "www" ? tenant : null;
+  }
+
+  if (hostname.endsWith(".localhost")) {
+    const tenant = hostname.split(".")[0];
+    return tenant || null;
+  }
+
+  const parts = hostname.split(".");
+  if (parts.length > 2 && parts[0] !== "www") return parts[0];
   return null;
 }
 
@@ -20,7 +47,8 @@ export function middleware(req: NextRequest) {
   const qpTenant = url.searchParams.get("tenant");
 
   // 1. Tenta pegar da URL ou subdomínio
-  let tenant = extractTenant(req);
+  const tenantFromRequest = extractTenant(req);
+  let tenant = tenantFromRequest;
   
   // 2. Se não achou na URL/subdomínio, tenta pegar do cookie existente
   if (!tenant) {
@@ -33,7 +61,7 @@ export function middleware(req: NextRequest) {
   // 3. Fallback para "public" se realmente não tiver nada
   tenant = tenant || "public";
 
-  if (qpTenant && url.pathname === "/") {
+  if (url.pathname === "/" && (qpTenant || tenantFromRequest)) {
     const redirectUrl = url.clone();
     redirectUrl.pathname = "/login";
 
@@ -44,7 +72,9 @@ export function middleware(req: NextRequest) {
   }
 
   // Prepara a resposta e define headers/cookies
-  const res = NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-tenant", tenant);
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
   res.headers.set("x-tenant", tenant);
   res.cookies.set("tenant", tenant, { path: "/" });
   
