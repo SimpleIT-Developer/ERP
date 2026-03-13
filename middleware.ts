@@ -19,7 +19,9 @@ function extractTenantFromHost(host: string): string | null {
 
 export function middleware(req: NextRequest) {
   const url = req.nextUrl;
-  const host = req.headers.get("host") || "";
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const rawHost = (forwardedHost ?? req.headers.get("host") ?? "").split(",")[0].trim();
+  const host = rawHost;
   const hostTenant = extractTenantFromHost(host);
   const qpTenant = url.searchParams.get("tenant")?.toLowerCase();
 
