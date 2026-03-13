@@ -45,9 +45,6 @@ export default function LoginPage() {
           </div>
           <button className="btn-primary w-full" type="submit">Entrar</button>
         </form>
-        <p className="mt-4 text-xs text-slate-500">
-          Dica: para testar outro tenant, use <span className="font-mono">?tenant=cliente2</span> na URL.
-        </p>
       </div>
     </div>
   );
