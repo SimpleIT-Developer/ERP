@@ -17,12 +17,29 @@ function extractTenantFromHost(host: string): string | null {
   return null;
 }
 
+function extractTenantFromRequest(req: NextRequest): string | null {
+  const candidates = [
+    req.headers.get("x-forwarded-host"),
+    req.headers.get("x-original-host"),
+    req.headers.get("host"),
+    req.nextUrl.hostname,
+  ]
+    .filter(Boolean)
+    .flatMap((v) => String(v).split(","))
+    .map((v) => v.trim())
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    const tenant = extractTenantFromHost(candidate);
+    if (tenant) return tenant;
+  }
+
+  return null;
+}
+
 export function middleware(req: NextRequest) {
   const url = req.nextUrl;
-  const forwardedHost = req.headers.get("x-forwarded-host");
-  const rawHost = (forwardedHost ?? req.headers.get("host") ?? "").split(",")[0].trim();
-  const host = rawHost;
-  const hostTenant = extractTenantFromHost(host);
+  const hostTenant = extractTenantFromRequest(req);
   const qpTenant = url.searchParams.get("tenant")?.toLowerCase();
 
   let tenant = hostTenant ?? qpTenant ?? null;
