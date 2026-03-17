@@ -10,11 +10,27 @@ function extractTenantFromHost(host: string): string | null {
   if (hostname.endsWith(suffix)) {
     const subdomainPart = hostname.slice(0, -suffix.length);
     const tenant = subdomainPart.split(".")[0];
-    if (!tenant || tenant === "www") return null;
+    if (!tenant || tenant === "www" || tenant === "public") return null;
     return tenant;
   }
 
   return null;
+}
+
+function getRequestHost(req: NextRequest): string | null {
+  const candidates = [
+    req.headers.get("x-forwarded-host"),
+    req.headers.get("x-original-host"),
+    req.headers.get("host"),
+    req.nextUrl.hostname,
+  ]
+    .filter(Boolean)
+    .flatMap((v) => String(v).split(","))
+    .map((v) => v.trim())
+    .filter(Boolean);
+
+  if (candidates.length === 0) return null;
+  return candidates[0].split(":")[0].toLowerCase();
 }
 
 function extractTenantFromRequest(req: NextRequest): string | null {
@@ -40,7 +56,8 @@ function extractTenantFromRequest(req: NextRequest): string | null {
 export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? "assina.simpleit.app.br").toLowerCase();
-  const isBaseDomain = url.hostname.toLowerCase() === baseDomain;
+  const requestHost = getRequestHost(req);
+  const isBaseDomain = requestHost === baseDomain;
   const hostTenant = extractTenantFromRequest(req);
   const qpTenantRaw = url.searchParams.get("tenant")?.toLowerCase();
   const qpTenant = qpTenantRaw && qpTenantRaw !== "public" ? qpTenantRaw : null;
