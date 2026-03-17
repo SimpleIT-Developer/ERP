@@ -15,7 +15,10 @@ function addDays(date: Date, days: number): Date {
 
 export type TenantAccessResult =
   | { ok: true; tenant: Awaited<ReturnType<typeof getTenantByKey>> }
-  | { ok: false; reason: "TENANT_NOT_FOUND" | "TRIAL_EXPIRED" | "TENANT_BLOCKED" | "TENANT_DISABLED" };
+  | {
+      ok: false;
+      reason: "TENANT_NOT_FOUND" | "TRIAL_EXPIRED" | "TENANT_BLOCKED" | "TENANT_DISABLED" | "DB_UNAVAILABLE";
+    };
 
 export async function getTenantByKey(tenantKey: string) {
   await connectMongo();
@@ -23,7 +26,12 @@ export async function getTenantByKey(tenantKey: string) {
 }
 
 export async function checkTenantAccess(tenantKey: string): Promise<TenantAccessResult> {
-  const tenant = await getTenantByKey(tenantKey);
+  let tenant: Awaited<ReturnType<typeof getTenantByKey>>;
+  try {
+    tenant = await getTenantByKey(tenantKey);
+  } catch {
+    return { ok: false, reason: "DB_UNAVAILABLE" };
+  }
   if (!tenant) return { ok: false, reason: "TENANT_NOT_FOUND" };
 
   if (tenant.access?.blocked) return { ok: false, reason: "TENANT_BLOCKED" };
@@ -175,15 +183,30 @@ export async function registerTenant(input: RegisterTenantInput) {
 }
 
 export async function authenticateTenantAdmin(tenantKey: string, emailOrUsername: string, password: string) {
-  await connectMongo();
-  const tenant = await AssinaClient.findOne({ tenantKey: normalizeTenantKey(tenantKey) });
+  try {
+    await connectMongo();
+  } catch {
+    return { ok: false as const, reason: "DB_UNAVAILABLE" as const };
+  }
+
+  let tenant: Awaited<ReturnType<typeof AssinaClient.findOne>>;
+  try {
+    tenant = await AssinaClient.findOne({ tenantKey: normalizeTenantKey(tenantKey) });
+  } catch {
+    return { ok: false as const, reason: "DB_UNAVAILABLE" as const };
+  }
   if (!tenant) return { ok: false as const, reason: "TENANT_NOT_FOUND" as const };
 
   const access = await checkTenantAccess(tenantKey);
   if (!access.ok) return { ok: false as const, reason: access.reason };
 
   const provided = emailOrUsername.trim().toLowerCase();
-  const admin = await PlatformAdmin.findOne({ tenantId: tenant._id, email: provided });
+  let admin: Awaited<ReturnType<typeof PlatformAdmin.findOne>>;
+  try {
+    admin = await PlatformAdmin.findOne({ tenantId: tenant._id, email: provided });
+  } catch {
+    return { ok: false as const, reason: "DB_UNAVAILABLE" as const };
+  }
   if (!admin) return { ok: false as const, reason: "INVALID_CREDENTIALS" as const };
 
   const parts = String(admin.passwordHash ?? "").split(":");

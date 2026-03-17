@@ -17,6 +17,7 @@ async function doLogin(formData: FormData) {
 
   const access = await checkTenantAccess(tenant);
   if (!access.ok) {
+    if (access.reason === "DB_UNAVAILABLE") redirect("/erro");
     if (access.reason === "TENANT_NOT_FOUND") redirect("/empresa-nao-cadastrada");
     if (access.reason === "TRIAL_EXPIRED") redirect("/trial-expirado");
     redirect("/");
@@ -24,6 +25,7 @@ async function doLogin(formData: FormData) {
 
   const auth = await authenticateTenantAdmin(tenant, email, password);
   if (!auth.ok) {
+    if (auth.reason === "DB_UNAVAILABLE") redirect("/erro");
     return;
   }
 
@@ -39,6 +41,7 @@ export default async function LoginPage() {
 
   const access = await checkTenantAccess(tenant);
   if (!access.ok) {
+    if (access.reason === "DB_UNAVAILABLE") redirect("/erro");
     if (access.reason === "TENANT_NOT_FOUND") redirect("/empresa-nao-cadastrada");
     if (access.reason === "TRIAL_EXPIRED") redirect("/trial-expirado");
     redirect("/");

@@ -18,6 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const access = await checkTenantAccess(tenant);
   if (!access.ok) {
     cookies().delete("auth");
+    if (access.reason === "DB_UNAVAILABLE") redirect("/erro");
     if (access.reason === "TENANT_NOT_FOUND") redirect("/empresa-nao-cadastrada");
     if (access.reason === "TRIAL_EXPIRED") redirect("/trial-expirado");
     redirect("/");
