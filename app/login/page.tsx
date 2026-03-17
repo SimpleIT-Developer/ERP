@@ -1,12 +1,13 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, BadgeCheck, FileSignature } from "lucide-react";
 import { authenticateTenantAdmin, checkTenantAccess } from "@/lib/assina";
+import { resolveTenantKey } from "@/lib/tenant";
 
 async function doLogin(formData: FormData) {
   "use server";
-  const tenant = headers().get("x-tenant");
+  const tenant = resolveTenantKey();
   if (!tenant || tenant === "public") {
     redirect("/");
   }
@@ -31,7 +32,7 @@ async function doLogin(formData: FormData) {
 }
 
 export default async function LoginPage() {
-  const tenant = headers().get("x-tenant");
+  const tenant = resolveTenantKey();
   if (!tenant || tenant === "public") {
     redirect("/");
   }

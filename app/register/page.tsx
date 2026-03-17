@@ -1,10 +1,10 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { FileSignature } from "lucide-react";
 import RegisterForm from "./register-form";
+import { resolveTenantKey } from "@/lib/tenant";
 
 export default function RegisterPage() {
-  const tenant = headers().get("x-tenant");
+  const tenant = resolveTenantKey();
   const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? "assina.simpleit.app.br").toLowerCase();
 
   if (tenant && tenant !== "public") {

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { Building2, FileSignature } from "lucide-react";
+import { resolveTenantKey } from "@/lib/tenant";
 
 export default function EmpresaNaoCadastradaPage() {
-  const tenant = headers().get("x-tenant");
+  const tenant = resolveTenantKey();
 
   return (
     <div className="min-h-screen bg-[#05070f] text-white">
@@ -64,4 +64,3 @@ export default function EmpresaNaoCadastradaPage() {
     </div>
   );
 }
-

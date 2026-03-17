@@ -1,15 +1,15 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { Sidebar } from "./sidebar";
 import { checkTenantAccess } from "@/lib/assina";
+import { resolveTenantKey } from "@/lib/tenant";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const auth = cookies().get("auth")?.value;
   if (!auth) {
     redirect("/login");
   }
-  const tenant = headers().get("x-tenant") ?? cookies().get("tenant")?.value ?? "public";
+  const tenant = resolveTenantKey() ?? "public";
   if (!tenant || tenant === "public") {
     cookies().delete("auth");
     redirect("/");

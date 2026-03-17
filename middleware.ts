@@ -93,16 +93,21 @@ export function middleware(req: NextRequest) {
 
     const res = NextResponse.redirect(redirectUrl);
     if (tenant) {
-      res.headers.set("x-tenant", tenant);
       res.cookies.set("tenant", tenant, { path: "/" });
     }
     return res;
   }
 
   // Prepara a resposta e define headers/cookies
-  const res = NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
   if (tenant && !isPublicFlow) {
-    res.headers.set("x-tenant", tenant);
+    requestHeaders.set("x-tenant", tenant);
+  }
+
+  const res = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  if (tenant && !isPublicFlow) {
     res.cookies.set("tenant", tenant, { path: "/" });
   }
   
