@@ -2,26 +2,47 @@ import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, BadgeCheck, FileSignature } from "lucide-react";
+import { authenticateTenantAdmin, checkTenantAccess } from "@/lib/assina";
 
 async function doLogin(formData: FormData) {
   "use server";
-  const username = String(formData.get("username") || "");
-  const password = String(formData.get("password") || "");
-  // Validação simples de credenciais
-  if (username !== "admin" || password !== "admin") {
-    // Em uma aplicação real, retornaríamos um erro para o formulário
-    return;
-  }
-  
-  cookies().set("auth", "1", { httpOnly: true, path: "/" });
-  redirect("/dashboard");
-}
-
-export default function LoginPage() {
   const tenant = headers().get("x-tenant");
   if (!tenant || tenant === "public") {
     redirect("/");
   }
+
+  const username = String(formData.get("username") || "");
+  const password = String(formData.get("password") || "");
+
+  const access = await checkTenantAccess(tenant);
+  if (!access.ok) {
+    if (access.reason === "TENANT_NOT_FOUND") redirect("/empresa-nao-cadastrada");
+    if (access.reason === "TRIAL_EXPIRED") redirect("/trial-expirado");
+    redirect("/");
+  }
+
+  const auth = await authenticateTenantAdmin(tenant, username, password);
+  if (!auth.ok) {
+    return;
+  }
+
+  cookies().set("auth", "1", { httpOnly: true, path: "/", sameSite: "lax" });
+  redirect("/dashboard");
+}
+
+export default async function LoginPage() {
+  const tenant = headers().get("x-tenant");
+  if (!tenant || tenant === "public") {
+    redirect("/");
+  }
+
+  const access = await checkTenantAccess(tenant);
+  if (!access.ok) {
+    if (access.reason === "TENANT_NOT_FOUND") redirect("/empresa-nao-cadastrada");
+    if (access.reason === "TRIAL_EXPIRED") redirect("/trial-expirado");
+    redirect("/");
+  }
+
   return (
     <div className="min-h-screen bg-[#05070f] text-white">
       <div className="relative min-h-screen">
@@ -98,7 +119,7 @@ export default function LoginPage() {
                         id="username"
                         name="username"
                         className="h-11 rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="seu@email"
+                        placeholder="admin"
                       />
                     </div>
 

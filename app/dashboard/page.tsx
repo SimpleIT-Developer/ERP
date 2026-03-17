@@ -1,7 +1,7 @@
 export default function DashboardPage() {
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-6">Visão Geral</h1>
+      <h1 className="text-xl font-semibold mb-6">Dashboard</h1>
       <div className="grid md:grid-cols-3 gap-6">
         <div className="card p-6 bg-white shadow-sm rounded-lg border">
           <div className="text-sm text-slate-500 font-medium">Faturamento (30d)</div>
