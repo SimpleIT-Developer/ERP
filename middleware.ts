@@ -64,7 +64,12 @@ export function middleware(req: NextRequest) {
   const cookieTenantRaw = req.cookies.get("tenant")?.value?.toLowerCase() ?? null;
   const cookieTenant = cookieTenantRaw && cookieTenantRaw !== "public" ? cookieTenantRaw : null;
 
-  const tenant = hostTenant ?? qpTenant ?? (isBaseDomain ? null : cookieTenant) ?? null;
+  const isPublicFlow =
+    url.pathname === "/register" ||
+    url.pathname === "/solicitar-acesso" ||
+    url.pathname.startsWith("/register/");
+
+  const tenant = isPublicFlow ? hostTenant ?? qpTenant ?? null : hostTenant ?? qpTenant ?? (isBaseDomain ? null : cookieTenant) ?? null;
 
   if (isBaseDomain && (url.pathname === "/login" || url.pathname.startsWith("/dashboard")) && !qpTenant) {
     const redirectUrl = url.clone();
@@ -96,7 +101,7 @@ export function middleware(req: NextRequest) {
 
   // Prepara a resposta e define headers/cookies
   const res = NextResponse.next();
-  if (tenant) {
+  if (tenant && !isPublicFlow) {
     res.headers.set("x-tenant", tenant);
     res.cookies.set("tenant", tenant, { path: "/" });
   }

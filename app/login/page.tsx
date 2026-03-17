@@ -11,7 +11,7 @@ async function doLogin(formData: FormData) {
     redirect("/");
   }
 
-  const username = String(formData.get("username") || "");
+  const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
 
   const access = await checkTenantAccess(tenant);
@@ -21,7 +21,7 @@ async function doLogin(formData: FormData) {
     redirect("/");
   }
 
-  const auth = await authenticateTenantAdmin(tenant, username, password);
+  const auth = await authenticateTenantAdmin(tenant, email, password);
   if (!auth.ok) {
     return;
   }
@@ -112,14 +112,14 @@ export default async function LoginPage() {
 
                   <form action={doLogin} className="mt-8 grid gap-4">
                     <div className="grid gap-2">
-                      <label className="text-xs font-semibold text-slate-400" htmlFor="username">
-                        Usuário
+                      <label className="text-xs font-semibold text-slate-400" htmlFor="email">
+                        Email
                       </label>
                       <input
-                        id="username"
-                        name="username"
+                        id="email"
+                        name="email"
                         className="h-11 rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="admin"
+                        placeholder="admin@empresa.com"
                       />
                     </div>
 

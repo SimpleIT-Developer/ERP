@@ -18,7 +18,7 @@ function getCache(): MongooseCache {
 
 export async function connectMongo(): Promise<typeof mongoose> {
   const uri = process.env.MONGODB_URI;
-  const dbName = process.env.MONGODB_DBNAME ?? "PortalRM";
+  const dbName = process.env.MONGODB_DBNAME ?? "assina_db";
 
   if (!uri) {
     throw new Error("MONGODB_URI não configurado");
