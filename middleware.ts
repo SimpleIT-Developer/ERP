@@ -18,6 +18,7 @@ function extractTenantFromHost(host: string): string | null {
 }
 
 function getRequestHost(req: NextRequest): string | null {
+  const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? "assina.simpleit.app.br").toLowerCase();
   const candidates = [
     req.headers.get("x-forwarded-host"),
     req.headers.get("x-original-host"),
@@ -30,7 +31,9 @@ function getRequestHost(req: NextRequest): string | null {
     .filter(Boolean);
 
   if (candidates.length === 0) return null;
-  return candidates[0].split(":")[0].toLowerCase();
+
+  const preferred = candidates.find((c) => c.split(":")[0].toLowerCase() !== baseDomain);
+  return (preferred ?? candidates[0]).split(":")[0].toLowerCase();
 }
 
 function extractTenantFromRequest(req: NextRequest): string | null {
