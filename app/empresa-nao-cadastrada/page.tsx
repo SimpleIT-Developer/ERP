@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { Building2, FileSignature } from "lucide-react";
+import { headers } from "next/headers";
 import { resolveTenantKey } from "@/lib/tenant";
 
 export default function EmpresaNaoCadastradaPage() {
   const tenant = resolveTenantKey();
+  const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? "assina.simpleit.app.br").toLowerCase();
+  const proto = headers().get("x-forwarded-proto") ?? (process.env.NODE_ENV === "development" ? "http" : "https");
+  const landingUrl = `${proto}://${baseDomain}`;
+  const registerUrl = `${landingUrl}/register`;
 
   return (
     <div className="min-h-screen bg-[#05070f] text-white">
       <header className="mx-auto max-w-5xl px-6 pt-8">
         <div className="flex items-center justify-between">
-          <Link className="inline-flex items-center gap-3" href="/">
+          <Link className="inline-flex items-center gap-3" href={landingUrl}>
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white shadow-sm">
               <FileSignature className="h-5 w-5" />
             </div>
@@ -20,7 +25,7 @@ export default function EmpresaNaoCadastradaPage() {
           </Link>
           <Link
             className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10 transition-colors"
-            href="/"
+            href={landingUrl}
           >
             Ir para Home
           </Link>
@@ -48,13 +53,13 @@ export default function EmpresaNaoCadastradaPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               className="inline-flex h-11 items-center justify-center rounded-xl bg-primary-600 px-5 text-sm font-semibold text-white hover:bg-primary-500 transition-colors"
-              href="/solicitar-acesso"
+              href={registerUrl}
             >
               Solicitar acesso
             </Link>
             <Link
               className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
-              href="/"
+              href={landingUrl}
             >
               Voltar para Home
             </Link>
