@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "ERP SaaS",
+  title: "Assina - Sua assinatura digital Inteligente",
   description: "ERP multi-tenant",
 };
 
