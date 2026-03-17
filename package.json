@@ -4,20 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 056bd03 (1)
     "dev": "next dev -p 3000",
     "dev:5000": "next dev -p 5000",
     "build": "next build",
     "start": "next start -p 3000",
     "start:5000": "next start -p 5000",
-=======
     "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
     "start": "next start -p 5000 -H 0.0.0.0",
->>>>>>> e8a2ca9 (Update project dependencies and build scripts for successful deployment)
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
