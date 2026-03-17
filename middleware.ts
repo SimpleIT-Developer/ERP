@@ -39,31 +39,50 @@ function extractTenantFromRequest(req: NextRequest): string | null {
 
 export function middleware(req: NextRequest) {
   const url = req.nextUrl;
+  const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? "assina.simpleit.app.br").toLowerCase();
+  const isBaseDomain = url.hostname.toLowerCase() === baseDomain;
   const hostTenant = extractTenantFromRequest(req);
-  const qpTenant = url.searchParams.get("tenant")?.toLowerCase();
+  const qpTenantRaw = url.searchParams.get("tenant")?.toLowerCase();
+  const qpTenant = qpTenantRaw && qpTenantRaw !== "public" ? qpTenantRaw : null;
+  const cookieTenantRaw = req.cookies.get("tenant")?.value?.toLowerCase() ?? null;
+  const cookieTenant = cookieTenantRaw && cookieTenantRaw !== "public" ? cookieTenantRaw : null;
 
-  let tenant = hostTenant ?? qpTenant ?? null;
+  const tenant = hostTenant ?? qpTenant ?? (isBaseDomain ? null : cookieTenant) ?? null;
 
-  if (!tenant) {
-    tenant = req.cookies.get("tenant")?.value ?? null;
+  if (isBaseDomain && (url.pathname === "/login" || url.pathname.startsWith("/dashboard")) && !qpTenant) {
+    const redirectUrl = url.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.searchParams.delete("tenant");
+    const res = NextResponse.redirect(redirectUrl);
+    res.cookies.delete("tenant");
+    return res;
   }
 
-  tenant = tenant || "public";
+  if ((url.pathname === "/login" || url.pathname.startsWith("/dashboard")) && !tenant) {
+    const redirectUrl = url.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.searchParams.delete("tenant");
+    return NextResponse.redirect(redirectUrl);
+  }
 
   if ((hostTenant || qpTenant) && url.pathname === "/") {
     const redirectUrl = url.clone();
     redirectUrl.pathname = "/login";
 
     const res = NextResponse.redirect(redirectUrl);
-    res.headers.set("x-tenant", tenant);
-    res.cookies.set("tenant", tenant, { path: "/" });
+    if (tenant) {
+      res.headers.set("x-tenant", tenant);
+      res.cookies.set("tenant", tenant, { path: "/" });
+    }
     return res;
   }
 
   // Prepara a resposta e define headers/cookies
   const res = NextResponse.next();
-  res.headers.set("x-tenant", tenant);
-  res.cookies.set("tenant", tenant, { path: "/" });
+  if (tenant) {
+    res.headers.set("x-tenant", tenant);
+    res.cookies.set("tenant", tenant, { path: "/" });
+  }
   
   return res;
 }
