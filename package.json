@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 056bd03 (1)
     "dev": "next dev -p 3000",
     "dev:5000": "next dev -p 5000",
     "build": "next build",
@@ -19,9 +22,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^0.577.0",
     "mongoose": "^9.1.3",
-    "next": "^14.2.30",
+    "next": "14.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
